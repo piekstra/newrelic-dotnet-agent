@@ -1,0 +1,39 @@
+name: Build MEL Wrapper DLL
+
+on:
+  push:
+    branches:
+      - piekstra/mel-wrapper-build-ci
+      - piekstra/mel-structured-log-args-context-data
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build FullAgent solution (Release)
+        run: |
+          dotnet build --force --configuration Release -p:AllowUnsafeBlocks=true FullAgent.sln
+        shell: powershell
+
+      - name: Upload arm64 Linux coreclr wrapper DLL
+        uses: actions/upload-artifact@v4
+        with:
+          name: mel-wrapper-arm64-coreclr-linux
+          path: src/Agent/newrelichome_arm64_coreclr_linux/Extensions/NewRelic.Providers.Wrapper.MicrosoftExtensionsLogging.dll
+          if-no-files-found: error
+
+      - name: Upload x64 Linux coreclr wrapper DLL
+        uses: actions/upload-artifact@v4
+        with:
+          name: mel-wrapper-x64-coreclr-linux
+          path: src/Agent/newrelichome_x64_coreclr_linux/Extensions/NewRelic.Providers.Wrapper.MicrosoftExtensionsLogging.dll
+          if-no-files-found: error
